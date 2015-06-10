@@ -3,94 +3,121 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QRubberBand>
+#include <QMenu>
+#include <QMouseEvent>
 
 #include <AIS_InteractiveContext.hxx>
 #include <V3d_View.hxx>
 
-#include <BRep_Tool.hxx>
+#include <Visual3d_Layer.hxx>
 
-#include <BRepAlgoAPI_Fuse.hxx>
+#if defined(_WIN32) || defined(__WIN32__)
+#include <WNT_Window.hxx>
+#include <Aspect_Handle.hxx>
+#endif
 
-#include <BRepBuilderAPI_MakeEdge.hxx>
-#include <BRepBuilderAPI_MakeFace.hxx>
-#include <BRepBuilderAPI_MakeWire.hxx>
-#include <BRepBuilderAPI_Transform.hxx>
+// the key for multi selection :
+#define MULTISELECTIONKEY Qt::ShiftModifier
 
-#include <BRepFilletAPI_MakeFillet.hxx>
-
-#include <BRepLib.hxx>
-
-#include <BRepOffsetAPI_MakeThickSolid.hxx>
-#include <BRepOffsetAPI_ThruSections.hxx>
-
-#include <BRepPrimAPI_MakeCylinder.hxx>
-#include <BRepPrimAPI_MakePrism.hxx>
-
-#include <GC_MakeArcOfCircle.hxx>
-#include <GC_MakeSegment.hxx>
-
-#include <GCE2d_MakeSegment.hxx>
-
-#include <gp.hxx>
-#include <gp_Ax1.hxx>
-#include <gp_Ax2.hxx>
-#include <gp_Ax2d.hxx>
-#include <gp_Dir.hxx>
-#include <gp_Dir2d.hxx>
-#include <gp_Pnt.hxx>
-#include <gp_Pnt2d.hxx>
-#include <gp_Trsf.hxx>
-#include <gp_Vec.hxx>
-
-#include <Geom_CylindricalSurface.hxx>
-#include <Geom_Plane.hxx>
-#include <Geom_Surface.hxx>
-#include <Geom_TrimmedCurve.hxx>
-
-#include <Geom2d_Ellipse.hxx>
-#include <Geom2d_TrimmedCurve.hxx>
-
-#include <TopExp_Explorer.hxx>
-
-#include <TopoDS.hxx>
-#include <TopoDS_Edge.hxx>
-#include <TopoDS_Face.hxx>
-#include <TopoDS_Wire.hxx>
-#include <TopoDS_Shape.hxx>
-#include <TopoDS_Compound.hxx>
-
-#include <TopTools_ListOfShape.hxx>
+// the key for shortcut ( use to activate dynamic rotation, panning )
+#define CASCADESHORTCUTKEY Qt::ControlModifier
 
 class OccView : public QWidget
 {
     Q_OBJECT
 public:
-    explicit OccView(QWidget *parent = 0);
+    //! mouse actions.
+    enum CurrentAction3d
+    {
+        CurAction3d_Nothing,
+        CurAction3d_DynamicZooming,
+        CurAction3d_WindowZooming,
+        CurAction3d_DynamicPanning,
+        CurAction3d_GlobalPanning,
+        CurAction3d_DynamicRotation
+    };
+
+public:
+    explicit OccView(Handle_AIS_InteractiveContext theContext, QWidget *parent = 0);
 
     QSize sizeHint() const;
 signals:
-
+    void selectionChanged(void);
 public slots:
 
+    //! operations for the view.
+    void pan(void);
+    void fitAll(void);
+    void reset(void);
+    void zoom(void);
+    void rotate(void);
+
 protected:
+    // Paint events.
     virtual void                  paintEvent( QPaintEvent* );
     virtual void                  resizeEvent( QResizeEvent* );
+
+    // Mouse events.
+    virtual void mousePressEvent(QMouseEvent* e);
+    virtual void mouseReleaseEvent(QMouseEvent* e);
+    virtual void mouseMoveEvent(QMouseEvent * e);
+    virtual void wheelEvent(QWheelEvent * e);
+
+    // Button events.
+    virtual void onLButtonDown(const int theFlags, const QPoint thePoint);
+    virtual void onMButtonDown(const int theFlags, const QPoint thePoint);
+    virtual void onRButtonDown(const int theFlags, const QPoint thePoint);
+    virtual void onMouseWheel(const int theFlags, const int theDelta, const QPoint thePoint);
+    virtual void onLButtonUp(const int theFlags, const QPoint thePoint);
+    virtual void onMButtonUp(const int theFlags, const QPoint thePoint);
+    virtual void onRButtonUp(const int theFlags, const QPoint thePoint);
+    virtual void onMouseMove(const int theFlags, const QPoint thePoint);
+
+    // Popup menu.
+    virtual void addItemInPopup(QMenu* theMenu);
+
+protected:
+
+    void popup(const int x, const int y);
+    void dragEvent(const int x, const int y);
+    void inputEvent(const int x, const int y);
+    void moveEvent(const int x, const int y);
+    void multiMoveEvent(const int x, const int y);
+    void multiDragEvent(const int x, const int y);
+    void multiInputEvent(const int x, const int y);
+    void drawRubberBand(const int minX, const int minY, const int maxX, const int maxY);
+    void panByMiddleButton(const QPoint& thePoint);
+    void uptdateGradientBackground(const Handle_Visual3d_Layer &theLayer, const  Quantity_Color& theTopColor, const Quantity_Color& theBottomColor);
+
 private:
 
-    Handle(V3d_Viewer) Viewer (const Standard_ExtString theName,
-                                               const Standard_CString theDomain,
-                                               const Standard_Real theViewSize,
-                                               const V3d_TypeOfOrientation theViewProj,
-                                               const Standard_Boolean theComputedMode,
-                                               const Standard_Boolean theDefaultComputedMode );
 
-    TopoDS_Shape
-    MakeBottle(const Standard_Real myWidth, const Standard_Real myHeight,
-               const Standard_Real myThickness);
+    //! the occ viewer.
+    Handle_V3d_View myView;
+    Handle_V3d_Viewer myViewer;
 
-    Handle(V3d_Viewer)             myViewer;
-    Handle(V3d_View)                myView;
-    Handle(AIS_InteractiveContext)  myContext;
+    //! the occ context.
+    Handle_AIS_InteractiveContext myContext;
+
+    //! the mouse current mode.
+    CurrentAction3d mCurrentMode;
+
+    //! save the mouse position.
+    Standard_Integer mXmin;
+    Standard_Integer mYmin;
+    Standard_Integer mXmax;
+    Standard_Integer mYmax;
+
+    //! rubber rectangle for the mouse selection.
+    QRubberBand* mRectBand;
+
+    //! save the degenerate mode state.
+    Standard_Boolean mDegenerateModeIsOn;
+
+    Handle_Visual3d_Layer mLayer;
+    Quantity_Color mTopColor;
+    Quantity_Color mBottomColor;
 };
 
 #endif // OCCVIEW_H
