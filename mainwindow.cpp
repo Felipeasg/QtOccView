@@ -266,27 +266,6 @@ void MainWindow::createToolBars()
     mHelpToolBar->addAction(mAboutAction);
 }
 
-
-void MainWindow::on_actionPan_triggered()
-{
-    occView->pan();
-}
-
-void MainWindow::on_actionFit_all_triggered()
-{
-    occView->fitAll();
-}
-
-void MainWindow::on_actionReset_triggered()
-{
-    occView->reset();
-}
-
-void MainWindow::on_actionZoom_triggered()
-{
-    occView->zoom();
-}
-
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About occQt"),

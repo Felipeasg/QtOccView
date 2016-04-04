@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui opengl x11extras
+QT       += core gui opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -28,7 +28,6 @@ LIBS += -L/usr/lib64/oce -lTKernel -lPTKernel -lTKMath -lTKService -lTKV3d -lTKO
         -lTKSTEPBase -lTKShapeSchema -lTKGeomBase -lTKGeomAlgo -lTKG3d -lTKG2d \
         -lTKXSBase -lTKPShape -lTKShHealing -lTKHLR -lTKTopAlgo -lTKMesh -lTKPrim \
         -lTKCDF -lTKBool -lTKBO -lTKFillet -lTKOffset \
-        -lfreeimage -lX11
 
 RESOURCES += \
     resources.qrc

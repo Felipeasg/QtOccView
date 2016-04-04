@@ -53,10 +53,8 @@ OccView::OccView(Handle_AIS_InteractiveContext theContext, QWidget *parent)
     //Eixo x, y, z
     myView->TriedronDisplay(Aspect_TOTP_LEFT_LOWER, Quantity_NOC_GOLD, 0.08, V3d_ZBUFFER);
 
-
 //    if (myIsRaytracing)
     //      myView->ChangeRenderingParams().Method = Graphic3d_RM_RAYTRACING;
-
 
     Standard_Boolean aSizeDependant = Standard_True;
 

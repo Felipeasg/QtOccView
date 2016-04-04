@@ -33,14 +33,6 @@ protected:
     void createToolBars(void);
 private slots:
 
-    void on_actionPan_triggered();
-
-    void on_actionFit_all_triggered();
-
-    void on_actionReset_triggered();
-
-    void on_actionZoom_triggered();
-
     //! show about box.
     void about(void);
 
